@@ -21,13 +21,20 @@ module.exports = function(grunt) {
           describe: true,
           expect: true,
           it: true,
-          module: true
+          module: true,
+          exports: true
         }
       }
+    },
+    watch: {
+        files: '<%= jshint.src %>',
+            tasks: ['jshint']
     }
   });
   grunt.loadNpmTasks('grunt-contrib-jshint');
 
   // Default task.
   grunt.registerTask('default', 'jshint');
+
+  grunt.loadNpmTasks('grunt-contrib-watch');
 };
