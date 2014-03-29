@@ -1,5 +1,13 @@
 module.exports = function(grunt) {
     grunt.initConfig({
+        concurrent: {
+            dev: {
+                tasks: ['nodemon', 'watch'],
+                options: {
+                    logConcurrentOutput: true
+                }
+            }
+        },
         jshint: {
             src: ['Gruntfile.js', 'app/**/*.js', 'test/**/**/*.js'],
             options: {
@@ -39,6 +47,48 @@ module.exports = function(grunt) {
                 }
             }
         },
+        nodemon: {
+            dev: {
+                script: 'server.js',
+                options: {
+                    args: [],
+                    ignore: ['public/**'],
+                    ext: 'js',
+                    nodeArgs: ['--debug'],
+                    delayTime: 1,
+                    env: {
+                        PORT: 5455
+                    },
+                    cwd: __dirname,
+                    // omit this property if you aren't serving HTML files and
+                    // don't want to open a browser tab on start
+                    callback: function (nodemon) {
+                        nodemon.on('log', function (event) {
+                            console.log(event.colour);
+                        });
+                        // opens browser on initial server start
+                        nodemon.on('config:update', function () {
+                            // Delay before server listens on port
+                            setTimeout(function() {
+                                require('open')('http://localhost:7000');
+                            }, 1000);
+                        });
+                        // refreshes browser when server reboots
+                        nodemon.on('restart', function () {
+                            // Delay before server listens on port
+                            setTimeout(function() {
+                                require('fs').writeFileSync('.rebooted', 'rebooted');
+                            }, 1000);
+                        });
+                    }
+                }
+            },
+            exec: {
+                options: {
+                    exec: 'less'
+                }
+            }
+        },
         uglify: {
             my_target: {
                 files: {
@@ -54,12 +104,20 @@ module.exports = function(grunt) {
             scripts: {
                 files: ['<%= jshint.src %>', 'public/js/*.js'],
                 tasks: ['jshint', 'uglify']
+            },
+            server: {
+                files: ['.rebooted'],
+                options: {
+                    livereload: true
+                }
             }
         }
     });
 
+    grunt.loadNpmTasks('grunt-concurrent');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-less');
+    grunt.loadNpmTasks('grunt-nodemon');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-watch');
 
